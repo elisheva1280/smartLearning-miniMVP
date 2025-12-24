@@ -1,20 +1,17 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
+import logger from '../utils/logger';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-
 
 export const generateResponse = async (req: Request, res: Response) => {
     try {
         const { prompt, category, subcategory } = req.body;
         
-        if (!prompt) {
-            return res.status(400).json({ error: 'Prompt is required' });
-        }
-
         // יצירת פרומפט מורחב עם קונטקסט
         const contextualPrompt = `בתחום ${category || 'כללי'} ובנושא ${subcategory || 'כללי'}, ${prompt}`;
+
+        logger.info('Generating AI response', { category, subcategory });
 
         // נסיון לשלוח ל-OpenAI
         try {
@@ -35,7 +32,10 @@ export const generateResponse = async (req: Request, res: Response) => {
 
             res.json({ response: result.data.choices[0].message.content });
         } catch (openaiError: any) {
-            console.error('OpenAI API Error:', openaiError.response?.data || openaiError.message);
+            logger.error('OpenAI API Error', { 
+                error: openaiError.response?.data || openaiError.message,
+                status: openaiError.response?.status
+            });
             
             // החזרת שגיאה מפורטת למשתמש
             let errorMessage = 'שירות ה-AI זמנית לא זמין';
@@ -54,7 +54,7 @@ export const generateResponse = async (req: Request, res: Response) => {
             });
         }
     } catch (error: any) {
-        console.error('General error:', error);
+        logger.error('General error in generateResponse', { error: error.message });
         res.status(500).json({ error: 'שגיאה כללית בשרת' });
     }
 };
