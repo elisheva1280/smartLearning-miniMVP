@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { savePromptHistory, getUserHistory, clearUserHistory } from '../controllers/promptHistoryController';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-router.post('/', savePromptHistory);
-router.get('/:userId', getUserHistory);
-router.delete('/:userId', clearUserHistory);
+router.post('/', authenticateToken, savePromptHistory);
+router.get('/:userId', authenticateToken, getUserHistory);
+router.delete('/:userId', authenticateToken, clearUserHistory);
 
 export default router;

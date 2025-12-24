@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser, checkUser, register, login, createAdmin } from '../controllers/userController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { validateRegister, validateLogin, authRateLimit } from '../middleware/validators';
 
 const router = Router();
 
 // Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/check', checkUser);
+router.post('/register', authRateLimit, validateRegister, register);
+router.post('/login', authRateLimit, validateLogin, login);
+router.post('/check', authRateLimit, checkUser);
 
 // Protected routes
 router.get('/', authenticateToken, requireAdmin, getAllUsers);
